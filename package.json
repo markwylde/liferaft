@@ -1,6 +1,6 @@
 {
   "name": "@markwylde/liferaft",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Consensus protocol based on raft, it will one day save your live.",
   "main": "index.js",
   "scripts": {
