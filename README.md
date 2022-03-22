@@ -473,7 +473,7 @@ timers and hope that we will receive message in time.
 
 MIT
 
-[Raft]: https://ramcloud.stanford.edu/raft.pdf
+[Raft]: https://raft.github.io/raft.pdf
 [Browserify]: http://browserify.org/
 [5]: https://github.com/unshiftio/liferaft/blob/master/raft.md#5-the-raft-consensus-algorithm
 [5.1]: https://github.com/unshiftio/liferaft/blob/master/raft.md#51-raft-basics
