@@ -627,7 +627,7 @@ class Raft extends EventEmitter {
           raft.timing(latency);
           when(errors ? output.errors : undefined, output.results);
           latency.length = nodes.length = 0;
-          output = null;
+          output = { errors: {}, results: {} };
         }
       });
     }
