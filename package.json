@@ -44,9 +44,9 @@
     "assume": "^2.3.0",
     "diagnostics": "^2.0.2",
     "memdown": "^6.1.1",
-    "mkdirp": "^1.0.4",
+    "mkdirp": "^2.1.4",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
-    "rimraf": "^3.0.2"
+    "rimraf": "^4.3.0"
   }
 }
