@@ -4,6 +4,8 @@
 
 `liferaft` is an JavaScript implementation of the [Raft] consensus algorithm.
 
+This repo/package is a fork of the [original](https://github.com/unshiftio/liferaft) liferaft by [unshiftio](https://github.com/unshiftio), with some patches and upgraded dependencies.
+
 ## Installation
 
 The `liferaft` module is distributed through npm and is compatible with
