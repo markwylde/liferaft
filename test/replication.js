@@ -3,8 +3,8 @@ const Raft = require('../');
 const Log = require('../log');
 const net = require('net');
 const util = require('util');
-const rimraf = require('rimraf');
-const mkdirp = require('mkdirp');
+const { rimraf } = require('rimraf');
+const { mkdirp } = require('mkdirp');
 const debug = require('diagnostics')('cluster');
 const port = 8088;
 
