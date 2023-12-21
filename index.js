@@ -228,7 +228,7 @@ class Raft extends EventEmitter {
           if (raft.log) {
             const { index, term } = await raft.log.getLastInfo();
 
-            if (index > packet.last.index && term > packet.last.term) {
+            if (index > packet.last.index && term >= packet.last.term) {
               raft.emit('vote', packet, false);
 
               return write(await raft.packet('voted', { granted: false }));
