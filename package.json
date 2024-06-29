@@ -45,7 +45,7 @@
     "diagnostics": "^2.0.2",
     "memdown": "^6.1.1",
     "mkdirp": "^3.0.1",
-    "mocha": "^10.2.0",
-    "rimraf": "^5.0.5"
+    "mocha": "^10.5.2",
+    "rimraf": "^5.0.7"
   }
 }
