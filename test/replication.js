@@ -240,29 +240,13 @@ describe('liferaft Log Replication', () => {
     const command1 = {first: 'command'};
     const command2 = {second: 'command2'};
 
-
-    // add log entries
-    node1.log.put({
-      term: node1.term,
-      index: 1,
-      committed: true,
-      responses: [{address: 8111, ack: true}, {address: 8000, ack: true}],
-      command: command1,
-    })
-
-    node1.log.put({
-      term: node1.term,
-      index: 2,
-      committed: true,
-      responses: [{address: 8111, ack: true}, {address: 8000, ack: true}],
-      command: command2,
-    });
-
-    node1.log.committedIndex = 2;
-
     node1.join(8112);
     node2.join(8111);
-    node1.promote();
+
+    node1.once('leader', async () => {
+      await node1.command(command1);
+      await node1.command(command2);
+    });
 
     node2.once('commit', (command) => {
       assume(command).deep.equals(command1);
@@ -272,8 +256,8 @@ describe('liferaft Log Replication', () => {
       });
     });
 
+    node1.promote();
   });
-
 
   it('Replicates log to new node', (next) => {
     const command1 = {first: 'command'};
@@ -317,13 +301,11 @@ describe('liferaft Log Replication', () => {
     node1.promote();
   });
 
-  // need to look back in the log for the prev item. Add this item and
-  // remove all later ones
-  it('removes conflicted entries', (next) => {
-    const command1 = {first: 'command'};
-    const command2 = {second: 'command2'};
-    const commandWrong1 = {wrong: 'command'};
-    const commandWrong2 = {wrong: 'command2'};
+  it('brings cluster up to date', (next) => {
+    const command1 = { first: 'command' };
+    const command2 = { second: 'command2' };
+    const commandNotCommitted1 = { wrong: 'command' };
+    const commandNotCommitted2 = { wrong: 'command2' };
     // node1 = new WoodenRaft({address: 8111, Log, adapter: require('memdown')});
     // node2 = new WoodenRaft({address: 8112, Log, adapter: require('memdown')});
     // node1 = new WoodenRaft({address: 8111, Log, path: './tmp/8111'});
@@ -334,7 +316,7 @@ describe('liferaft Log Replication', () => {
       term: 1,
       index: 1,
       committed: true,
-      responses: [{address: 8111, ack: true}, {address: 8000, ack: true}],
+      responses: [{ address: 8111, ack: true }, { address: 8000, ack: true }],
       command: command1,
     });
 
@@ -342,7 +324,7 @@ describe('liferaft Log Replication', () => {
       term: 1,
       index: 1,
       committed: true,
-      responses: [{address: 8111, ack: true}, {address: 8000, ack: true}],
+      responses: [{ address: 8111, ack: true }, { address: 8000, ack: true }],
       command: command1,
     });
 
@@ -350,16 +332,16 @@ describe('liferaft Log Replication', () => {
       term: 1,
       index: 2,
       committed: false,
-      responses: [{address: 8112, ack: true}],
-      command: commandWrong1,
+      responses: [{ address: 8112, ack: true }],
+      command: commandNotCommitted1,
     });
 
     node2.log.put({
       term: 1,
       index: 3,
       committed: false,
-      responses: [{address: 8112, ack: true}],
-      command: commandWrong2,
+      responses: [{ address: 8112, ack: true }],
+      command: commandNotCommitted2,
     });
 
     node1.log.committedIndex = 1;
@@ -371,33 +353,31 @@ describe('liferaft Log Replication', () => {
     node2.join(8111);
 
     node2.once('leader', () => {
-      throw new Error('should never be leader');
+      node2.command(command2);
+
+      let timesChecked = 0;
+      async function checkNodeCommit(command) {
+        try {
+          let newCommand;
+          if (timesChecked === 0) newCommand = commandNotCommitted1;
+          if (timesChecked === 1) newCommand = commandNotCommitted2;
+          if (timesChecked === 2) newCommand = command2;
+          timesChecked++;
+          assume(command).deep.equals(newCommand);
+          assume(node1.log.committedIndex).equals(1 + timesChecked);
+
+          if (timesChecked === 3) {
+            next();
+          }
+        } catch (ex) {
+          next(ex);
+        }
+      }
+
+      node1.on('commit', checkNodeCommit);
+      node1.once('leader', () =>  next(new Error('Node1 should not have become leader')));
+      node1.promote(); // Try to promote node1 but it should not become leader as it has a lower written index
     });
-
-    node1.once('leader', () => {
-      node1.command(command2);
-
-      node2.once('commit', async (command) => {
-        assume(command).deep.equals(command2);
-        const entry2 = await node2.log.getLastEntry();
-        assume(entry2.index).equal(2);
-        assume(entry2.command).deep.equal(command2);
-        assume(entry2.committed).true;
-
-        const entry1 = await node2.log.getEntryBefore(entry2);
-
-        assume(entry1.index).equal(1);
-        assume(entry1.command).deep.equal(command1);
-        assume(entry1.committed).true;
-
-        const entry0 = await node2.log.getEntryBefore(entry1);
-        assume(entry0.index).equals(0);
-
-        next();
-      });
-    });
-
-    node1.promote();
   });
 
 });

@@ -228,7 +228,10 @@ class Raft extends EventEmitter {
           if (raft.log) {
             const { index, term } = await raft.log.getLastInfo();
 
-            if (index > packet.last.index && term > packet.last.term) {
+            // Vote "false" if our log is more up-to-date:
+            // - Our term is higher, OR
+            // - Terms are the same, but our index is higher.
+            if (term > packet.last.term || (term === packet.last.term && index > packet.last.index)) {
               raft.emit('vote', packet, false);
 
               return write(await raft.packet('voted', { granted: false }));
